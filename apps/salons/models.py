@@ -19,6 +19,24 @@ class Salon(TimeStampedModel):
 
     name = models.CharField(max_length=150)
 
+    # --- Onboarding wizard (Phase 1.4) --------------------------------------
+    # "services" and "staff" steps don't have their own models yet (Phase 2
+    # and 3) — services_step_done/staff_step_done just let the wizard mark
+    # those steps acknowledged/skipped until the real CRUD exists to fill
+    # them in. logo_url is a URL (no file upload yet — django-storages isn't
+    # wired in until a later phase, per requirements.txt).
+    logo_url = models.URLField(blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    contact_phone = models.CharField(max_length=20, blank=True)
+    contact_email = models.EmailField(blank=True)
+    business_hours = models.JSONField(default=dict, blank=True)
+    payment_methods = models.JSONField(default=list, blank=True)
+    whatsapp_number = models.CharField(max_length=20, blank=True)
+    slug = models.SlugField(max_length=150, unique=True, null=True, blank=True)
+    services_step_done = models.BooleanField(default=False)
+    staff_step_done = models.BooleanField(default=False)
+    onboarding_completed = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 
