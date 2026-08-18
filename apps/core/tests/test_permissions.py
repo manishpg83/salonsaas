@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
-from apps.core.permissions import IsOwner, IsOwnerOrManager, IsSalonMember, Role
+from apps.core.permissions import IsOwner, IsOwnerOrManager, IsSalonMember
+from apps.salons.models import Role
 
 
 def _request(*, authenticated=True, salon=None, membership=None):

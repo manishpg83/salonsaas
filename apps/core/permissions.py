@@ -1,19 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-
-class Role:
-    """
-    Mirrors the choices that will be formalized as `Membership.role`
-    (TextChoices) in Phase 1.3 (apps.salons). Defined here as plain strings
-    so permission classes have something to compare against before that
-    model exists — replace these references with the real enum once it
-    lands, per CLAUDE.md §4.3.
-    """
-
-    OWNER = "OWNER"
-    MANAGER = "MANAGER"
-    RECEPTIONIST = "RECEPTIONIST"
-    STAFF = "STAFF"
+from apps.salons.models import Role
 
 
 class IsSalonMember(BasePermission):

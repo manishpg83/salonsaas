@@ -18,7 +18,7 @@ Status key:  `[ ]` not started · `[~]` in progress · `[x]` done & committed
 ### Phase 1 — Auth & onboarding
 - [x] **1.1** Custom user + JWT auth (register/login/refresh/logout/me) — _note: email-based User, token blacklist on logout; 24 tests passing against real Postgres_
 - [x] **1.2** OTP login + forgot/reset password (console sender) — _note: `OTP` model (LOGIN/PASSWORD_RESET), pluggable `ConsoleOTPSender` (prints code), registered in admin for QA; 34 tests passing_
-- [ ] **1.3** Salon, Branch & Membership + active-salon resolution — _note:_
+- [x] **1.3** Salon, Branch & Membership + active-salon resolution — _note: registering a user auto-creates Salon+OWNER Membership (signal); `core.permissions.Role`/`get_active_membership` now wired to the real models; 41 tests passing_
 - [ ] **1.4** Onboarding wizard (10 steps) + booking slug — _note:_
 
 ### Phase 2 — Services & catalog
@@ -88,7 +88,8 @@ _Record any architecture decision or deviation here (date — decision — why).
 - 2026-—-— · Backend = Django + DRF + PostgreSQL (overrides blueprint's Node/Supabase recommendation).
 - 2026-—-— · Multi-tenancy = shared DB, row-level `salon` scoping.
 - 2026-08-18 · Consolidated CLAUDE.md/PROGRESS.md/requirements.txt/docs into `salonos/` (the actual git repo root, already linked to GitHub) — they had been created one level up by mistake.
-- 2026-08-18 · `apps/core/permissions.py` defines a placeholder `Role` (plain strings) since `apps.salons.Membership` doesn't exist until Phase 1.3. Replace references with the real `Membership.role` TextChoices once that lands; `get_active_membership()` uses `apps.get_model("salons", "Membership")` for the same reason.
+- 2026-08-18 · `apps/core/permissions.py` defines a placeholder `Role` (plain strings) since `apps.salons.Membership` doesn't exist until Phase 1.3. Replace references with the real `Membership.role` TextChoices once that lands; `get_active_membership()` uses `apps.get_model("salons", "Membership")` for the same reason. — **Resolved 2026-08-18 (Module 1.3):** both now import `apps.salons.models` directly.
+- 2026-08-18 · Module 1.3: registration auto-creates a Salon + OWNER Membership via a `post_save` signal on `User` (`apps/salons/signals.py`), not inside `RegisterView` — keeps `apps.accounts` decoupled from `apps.salons`. Superusers are excluded (SaaS Super Admin isn't a salon owner). "Active salon" is `Membership.is_current`, enforced to at most one per user by a Postgres partial unique constraint — chosen over a field on `User` so all tenancy state stays on the Membership row.
 - 2026-08-18 · Enabled `rest_framework_simplejwt.token_blacklist` (bundled with the already-approved simplejwt package, not a new dependency) so `/auth/logout/` can actually invalidate a refresh token. Reminder for future auth-adjacent views: the project's `DEFAULT_PERMISSION_CLASSES` is `IsAuthenticated`, so any endpoint that must work *before* login (login itself, token refresh, register) needs an explicit `permission_classes = [AllowAny]` override — see `apps/accounts/views.py`.
 
 ## Blockers / open questions
