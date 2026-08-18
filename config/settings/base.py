@@ -45,8 +45,15 @@ INSTALLED_APPS = [
     # third-party
     "rest_framework",
     "corsheaders",
-    # local apps go here as they're built, e.g. "apps.core", "apps.accounts"
+    "rest_framework_simplejwt.token_blacklist",
+    # local apps
+    "apps.core",
+    "apps.accounts",
 ]
+
+# Custom user model — email login, no username (set before the first
+# migration; changing this later requires recreating the accounts migrations).
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -153,5 +160,6 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
 }

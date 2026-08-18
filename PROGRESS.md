@@ -13,10 +13,10 @@ Status key:  `[ ]` not started · `[~]` in progress · `[x]` done & committed
 
 ### Phase 0 — Foundation & setup
 - [x] **0.1** Project bootstrap (settings split, .env, Postgres, DRF+JWT, health endpoint) — _note: `/api/v1/health/` live, 1 test passing; set real DB_PASSWORD in .env before running migrate_
-- [ ] **0.2** Core app: base models, tenancy, `SalonScopedViewSet`, permission skeleton — _note:_
+- [x] **0.2** Core app: base models, tenancy, `SalonScopedViewSet`, permission skeleton — _note: no concrete models yet (FK to salons.Salon resolves lazily), 13 unit tests passing_
 
 ### Phase 1 — Auth & onboarding
-- [ ] **1.1** Custom user + JWT auth (register/login/refresh/logout/me) — _note:_
+- [x] **1.1** Custom user + JWT auth (register/login/refresh/logout/me) — _note: email-based User, token blacklist on logout; 11 tests passing (verified against sqlite locally — real DB_PASSWORD still needed in .env to migrate)_
 - [ ] **1.2** OTP login + forgot/reset password (console sender) — _note:_
 - [ ] **1.3** Salon, Branch & Membership + active-salon resolution — _note:_
 - [ ] **1.4** Onboarding wizard (10 steps) + booking slug — _note:_
@@ -88,6 +88,8 @@ _Record any architecture decision or deviation here (date — decision — why).
 - 2026-—-— · Backend = Django + DRF + PostgreSQL (overrides blueprint's Node/Supabase recommendation).
 - 2026-—-— · Multi-tenancy = shared DB, row-level `salon` scoping.
 - 2026-08-18 · Consolidated CLAUDE.md/PROGRESS.md/requirements.txt/docs into `salonos/` (the actual git repo root, already linked to GitHub) — they had been created one level up by mistake.
+- 2026-08-18 · `apps/core/permissions.py` defines a placeholder `Role` (plain strings) since `apps.salons.Membership` doesn't exist until Phase 1.3. Replace references with the real `Membership.role` TextChoices once that lands; `get_active_membership()` uses `apps.get_model("salons", "Membership")` for the same reason.
+- 2026-08-18 · Enabled `rest_framework_simplejwt.token_blacklist` (bundled with the already-approved simplejwt package, not a new dependency) so `/auth/logout/` can actually invalidate a refresh token. Reminder for future auth-adjacent views: the project's `DEFAULT_PERMISSION_CLASSES` is `IsAuthenticated`, so any endpoint that must work *before* login (login itself, token refresh, register) needs an explicit `permission_classes = [AllowAny]` override — see `apps/accounts/views.py`.
 
 ## Blockers / open questions
 _List anything waiting on the human._
