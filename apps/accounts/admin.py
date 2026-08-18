@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import User
+from .models import OTP, User
 
 
 @admin.register(User)
@@ -27,3 +27,14 @@ class UserAdmin(DjangoUserAdmin):
             },
         ),
     )
+
+
+@admin.register(OTP)
+class OTPAdmin(admin.ModelAdmin):
+    """Registered mainly for manual QA — lets you read a generated code
+    straight from the admin instead of digging through console output."""
+
+    list_display = ["user", "purpose", "code", "created_at", "expires_at", "used_at"]
+    list_filter = ["purpose"]
+    search_fields = ["user__email", "code"]
+    readonly_fields = ["created_at", "updated_at"]

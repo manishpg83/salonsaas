@@ -16,8 +16,8 @@ Status key:  `[ ]` not started · `[~]` in progress · `[x]` done & committed
 - [x] **0.2** Core app: base models, tenancy, `SalonScopedViewSet`, permission skeleton — _note: no concrete models yet (FK to salons.Salon resolves lazily), 13 unit tests passing_
 
 ### Phase 1 — Auth & onboarding
-- [x] **1.1** Custom user + JWT auth (register/login/refresh/logout/me) — _note: email-based User, token blacklist on logout; 11 tests passing (verified against sqlite locally — real DB_PASSWORD still needed in .env to migrate)_
-- [ ] **1.2** OTP login + forgot/reset password (console sender) — _note:_
+- [x] **1.1** Custom user + JWT auth (register/login/refresh/logout/me) — _note: email-based User, token blacklist on logout; 24 tests passing against real Postgres_
+- [x] **1.2** OTP login + forgot/reset password (console sender) — _note: `OTP` model (LOGIN/PASSWORD_RESET), pluggable `ConsoleOTPSender` (prints code), registered in admin for QA; 34 tests passing_
 - [ ] **1.3** Salon, Branch & Membership + active-salon resolution — _note:_
 - [ ] **1.4** Onboarding wizard (10 steps) + booking slug — _note:_
 

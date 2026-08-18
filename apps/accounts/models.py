@@ -47,3 +47,22 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 
     def __str__(self):
         return self.email
+
+
+class OTP(TimeStampedModel):
+    """A one-time code for either OTP login or password-reset verification.
+    Not salon-scoped — it belongs to a User, and Salon doesn't exist yet at
+    this point in the build order."""
+
+    class Purpose(models.TextChoices):
+        LOGIN = "LOGIN", "Login"
+        PASSWORD_RESET = "PASSWORD_RESET", "Password Reset"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps")
+    code = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=20, choices=Purpose.choices)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.purpose} OTP for {self.user.email}"
