@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Service, ServiceCategory
+from .models import Package, PackageService, Service, ServiceCategory
 
 
 class ServiceCategorySerializer(serializers.ModelSerializer):
@@ -61,3 +61,51 @@ class ServiceSerializer(serializers.ModelSerializer):
         if branch is not None and branch.salon_id != self._current_salon().id:
             raise serializers.ValidationError("Invalid branch.")
         return branch
+
+
+class PackageServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PackageService
+        fields = ["service", "quantity"]
+
+
+class PackageSerializer(serializers.ModelSerializer):
+    items = PackageServiceSerializer(many=True)
+
+    class Meta:
+        model = Package
+        fields = [
+            "id",
+            "name",
+            "description",
+            "price",
+            "is_active",
+            "items",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_items(self, items):
+        if not items:
+            raise serializers.ValidationError("A package must include at least one service.")
+
+        request = self.context["request"]
+        seen_service_ids = set()
+        for item in items:
+            service = item["service"]
+            if service.salon_id != request.salon.id:
+                raise serializers.ValidationError("Invalid service in package.")
+            if service.id in seen_service_ids:
+                raise serializers.ValidationError("Duplicate service in package.")
+            seen_service_ids.add(service.id)
+        return items
+
+    def create(self, validated_data):
+        items_data = validated_data.pop("items")
+        salon = validated_data["salon"]
+        package = Package.objects.create(**validated_data)
+        PackageService.objects.bulk_create(
+            PackageService(package=package, salon=salon, **item) for item in items_data
+        )
+        return package

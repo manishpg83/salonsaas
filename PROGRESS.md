@@ -23,7 +23,7 @@ Status key:  `[ ]` not started · `[~]` in progress · `[x]` done & committed
 
 ### Phase 2 — Services & catalog
 - [x] **2.1** Service categories & services (CRUD, tenant-scoped) — _note: first real use of SalonScopedViewSet + IsSalonMember; cross-tenant FK validation on category/branch; 60 tests passing_
-- [ ] **2.2** Packages (MVP-light) — _note:_
+- [x] **2.2** Packages (MVP-light) — _note: `Package`+`PackageService` via nested-writable serializer; read/create only (PATCH/DELETE return 405 by design); 67 tests passing_
 
 ### Phase 3 — Staff
 - [ ] **3.1** Staff profiles + staff-service mapping — _note:_

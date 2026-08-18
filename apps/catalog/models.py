@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from apps.core.models import SalonScopedModel
@@ -46,3 +47,38 @@ class Service(SalonScopedModel):
 
     def __str__(self):
         return self.name
+
+
+class Package(SalonScopedModel):
+    """A bundle of services sold at one price. MVP-light per CLAUDE.md
+    §2.2: read/create only (no update/delete endpoints) — usage tracking
+    (redeeming individual services against a purchased package) is V2."""
+
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class PackageService(SalonScopedModel):
+    """One included service line within a Package (e.g. "3x Haircut")."""
+
+    package = models.ForeignKey(Package, on_delete=models.CASCADE, related_name="items")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="+")
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["package", "service"], name="unique_service_per_package"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.quantity}x {self.service.name} in {self.package.name}"
