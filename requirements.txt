@@ -1,0 +1,45 @@
+# =========================================================================
+# Salon SaaS (SalonOS) — Python dependencies
+# Stack: Django + DRF + PostgreSQL  (see CLAUDE.md section 3)
+# Install:  pip install -r requirements.txt
+# =========================================================================
+
+# --- Core (Phase 0 onward) -----------------------------------------------
+Django>=5.2,<6.0
+djangorestframework>=3.15
+djangorestframework-simplejwt>=5.3
+psycopg[binary]>=3.1            # PostgreSQL driver
+django-environ>=0.11           # read settings/secrets from .env
+django-cors-headers>=4.3       # CORS for a separate frontend
+
+# --- Testing (Phase 0 onward) --------------------------------------------
+pytest>=8.0
+pytest-django>=4.8
+factory_boy>=3.3
+
+# =========================================================================
+# Added in LATER phases — do NOT install until that phase (kept here for
+# reference). Uncomment when CLAUDE.md tells you to, after confirming.
+# =========================================================================
+
+# --- Phase 7 (inventory) / general: nicer API filtering ------------------
+# django-filter>=24.0
+
+# --- Phase 8 (WhatsApp + scheduled reminders) ----------------------------
+# celery>=5.3
+# redis>=5.0
+# django-celery-beat>=2.6
+
+# --- Storage (when moving off local file storage) ------------------------
+# django-storages>=1.14
+# boto3>=1.34
+
+# --- Payments (Version 3 / SaaS billing) ---------------------------------
+# razorpay>=1.4
+
+# --- Email provider (when wiring real email) -----------------------------
+# django-ses>=4.0        # if using Amazon SES
+# (Resend can be used via its REST API without an extra package)
+
+# --- Production serving ---------------------------------------------------
+# gunicorn>=22.0
