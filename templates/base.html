@@ -22,6 +22,7 @@
         <a href="{% url 'invoice-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'invoice-' %} active{% endif %}">Billing</a>
         {% if request.membership.role == "OWNER" or request.membership.role == "MANAGER" %}
           <a href="{% url 'expense-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'expense-' %} active{% endif %}">Expenses</a>
+          <a href="{% url 'product-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'product-' or request.resolver_match.url_name|slice:':9' == 'purchase-' or request.resolver_match.url_name|slice:':9' == 'supplier-' %} active{% endif %}">Inventory</a>
         {% endif %}
       </nav>
     </aside>

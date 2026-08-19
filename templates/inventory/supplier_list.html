@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Suppliers · SalonOS{% endblock %}
+{% block page_title %}Suppliers{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Suppliers</h3>
+    <div class="data-table-actions">
+      <a href="{% url 'product-list' %}">Products</a>
+      <a href="{% url 'purchase-list' %}">Purchases</a>
+      <a href="{% url 'supplier-create' %}" class="btn btn-primary">Add supplier</a>
+    </div>
+  </div>
+  {% if suppliers %}
+    <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for supplier in suppliers %}
+          <tr>
+            <td>{{ supplier.name }}</td>
+            <td>{{ supplier.contact_phone|default:"—" }}</td>
+            <td>{{ supplier.contact_email|default:"—" }}</td>
+            <td class="data-table-actions">
+              <a href="{% url 'supplier-edit' supplier.pk %}">Edit</a>
+              <form method="post" action="{% url 'supplier-delete' supplier.pk %}" class="inline-form" onsubmit="return confirm('Remove {{ supplier.name }}?');">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% else %}
+    <p class="muted">No suppliers yet. Add your first one to get started.</p>
+  {% endif %}
+</section>
+{% endblock %}

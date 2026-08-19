@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Purchase #{{ purchase.pk }} · SalonOS{% endblock %}
+{% block page_title %}Purchase #{{ purchase.pk }}{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>{{ purchase.supplier.name|default:"No supplier" }} — {{ purchase.date }}</h3>
+    <strong>Total: ₹{{ purchase.total }}</strong>
+  </div>
+
+  <div class="table-responsive">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Unit cost</th>
+        <th>Line total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td>{{ item.product.name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>₹{{ item.unit_cost }}</td>
+          <td>₹{{ item.line_total }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="muted">No items yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <form method="post" action="{% url 'purchase-add-item' purchase.pk %}" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 16px;">
+    {% csrf_token %}
+    {% for field in item_form %}
+      <div class="form-field" style="margin-bottom: 0;">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for err in field.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Add item</button>
+  </form>
+  <p class="muted" style="margin-top: 8px;">Adding an item immediately brings that quantity into stock.</p>
+</section>
+{% endblock %}

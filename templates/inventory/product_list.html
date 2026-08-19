@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Products · SalonOS{% endblock %}
+{% block page_title %}Products{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Products</h3>
+    <div class="data-table-actions">
+      <a href="{% url 'product-category-list' %}">Categories</a>
+      <a href="{% url 'supplier-list' %}">Suppliers</a>
+      <a href="{% url 'purchase-list' %}">Purchases</a>
+      <a href="{% url 'product-create' %}" class="btn btn-primary">Add product</a>
+    </div>
+  </div>
+  {% if products %}
+    <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>SKU</th>
+          <th>Category</th>
+          <th>Stock</th>
+          <th>Selling price</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+          <tr>
+            <td><a href="{% url 'product-detail' product.pk %}">{{ product.name }}</a></td>
+            <td>{{ product.sku }}</td>
+            <td>{{ product.category.name|default:"—" }}</td>
+            <td>
+              {{ product.current_stock }}
+              {% if product.is_low_stock %}
+                <span class="badge badge-danger">Low stock</span>
+              {% endif %}
+            </td>
+            <td>₹{{ product.selling_price }}</td>
+            <td>
+              {% if product.is_active %}
+                <span class="badge badge-active">Active</span>
+              {% else %}
+                <span class="badge">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="data-table-actions">
+              <a href="{% url 'product-edit' product.pk %}">Edit</a>
+              <form method="post" action="{% url 'product-delete' product.pk %}" class="inline-form" onsubmit="return confirm('Remove {{ product.name }}?');">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% else %}
+    <p class="muted">No products yet. Add your first one to get started.</p>
+  {% endif %}
+</section>
+{% endblock %}

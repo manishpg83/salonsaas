@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}New purchase · SalonOS{% endblock %}
+{% block page_title %}New purchase{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 520px;">
+  {% if form.non_field_errors %}
+    <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for err in field.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Create purchase</button>
+  </form>
+  <p class="muted" style="margin-top: 12px;">You'll add line items (and bring stock in) on the next page.</p>
+</section>
+{% endblock %}

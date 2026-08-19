@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('apps.crm.urls')),
     path('', include('apps.scheduling.urls')),
     path('', include('apps.billing.urls')),
+    path('', include('apps.inventory.urls')),
 
     # Legacy DRF API (Phase 0-2, kept but not extended — see CLAUDE.md §3)
     path('api/v1/health/', health_check, name='health-check'),

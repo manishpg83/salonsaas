@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Product categories · SalonOS{% endblock %}
+{% block page_title %}Product categories{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Product categories</h3>
+    <div class="data-table-actions">
+      <a href="{% url 'product-list' %}">Products</a>
+      <a href="{% url 'product-category-create' %}" class="btn btn-primary">Add category</a>
+    </div>
+  </div>
+  {% if categories %}
+    <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for category in categories %}
+          <tr>
+            <td>{{ category.name }}</td>
+            <td class="data-table-actions">
+              <a href="{% url 'product-category-edit' category.pk %}">Edit</a>
+              <form method="post" action="{% url 'product-category-delete' category.pk %}" class="inline-form" onsubmit="return confirm('Remove {{ category.name }}?');">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% else %}
+    <p class="muted">No categories yet. Add your first one to get started.</p>
+  {% endif %}
+</section>
+{% endblock %}

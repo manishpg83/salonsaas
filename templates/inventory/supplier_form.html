@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{% if supplier %}Edit supplier{% else %}Add supplier{% endif %} · SalonOS{% endblock %}
+{% block page_title %}{% if supplier %}Edit {{ supplier.name }}{% else %}Add supplier{% endif %}{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 520px;">
+  {% if form.non_field_errors %}
+    <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="muted">{{ field.help_text }}</p>{% endif %}
+        {% for err in field.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">{% if supplier %}Save changes{% else %}Add supplier{% endif %}</button>
+  </form>
+</section>
+{% endblock %}

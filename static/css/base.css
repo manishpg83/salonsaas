@@ -237,6 +237,11 @@ p {
   color: var(--success);
 }
 
+.badge-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
 /* --- Buttons ------------------------------------------------------------------- */
 
 .btn {

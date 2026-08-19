@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.models import Service
 from apps.core.decorators import salon_member_required
+from apps.inventory.stock import consume_for_appointment
 from apps.salons.models import Branch
 from apps.staff.models import Staff
 
@@ -285,5 +286,7 @@ def appointment_status_view(request, pk):
     except ValueError as exc:
         messages.error(request, str(exc))
     else:
+        if new_status == Appointment.Status.COMPLETED:
+            consume_for_appointment(appointment)
         messages.success(request, f"Appointment marked {appointment.get_status_display()}.")
     return redirect("appointment-detail", pk=appointment.pk)

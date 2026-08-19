@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{% if category %}Edit category{% else %}Add category{% endif %} · SalonOS{% endblock %}
+{% block page_title %}{% if category %}Edit {{ category.name }}{% else %}Add category{% endif %}{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 420px;">
+  {% if form.non_field_errors %}
+    <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for err in field.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">{% if category %}Save changes{% else %}Add category{% endif %}</button>
+  </form>
+</section>
+{% endblock %}
