@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Availability · SalonOS{% endblock %}
+{% block page_title %}Staff availability{% endblock %}
+
+{% block content %}
+<section class="card">
+  <form method="get" novalidate>
+    <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+      <div class="form-field" style="margin-bottom: 0;">
+        <label for="{{ form.service.id_for_label }}">{{ form.service.label }}</label>
+        {{ form.service }}
+      </div>
+      <div class="form-field" style="margin-bottom: 0;">
+        <label for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+        {{ form.date }}
+      </div>
+      <button type="submit" class="btn btn-primary">Check availability</button>
+    </div>
+    {% for err in form.non_field_errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+  </form>
+</section>
+
+{% if free_staff is not None %}
+<section class="card">
+  <div class="card-header">
+    <h3>Free staff</h3>
+  </div>
+  {% if free_staff %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Branch</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in free_staff %}
+          <tr>
+            <td>{{ member.name }}</td>
+            <td>{{ member.role|default:"—" }}</td>
+            <td>{{ member.branch.name|default:"All branches" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No staff are free for that service on this date.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

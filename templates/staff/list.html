@@ -7,7 +7,10 @@
 <section class="card">
   <div class="card-header">
     <h3>Staff</h3>
-    <a href="{% url 'staff-create' %}" class="btn btn-primary">Add staff</a>
+    <div class="data-table-actions">
+      <a href="{% url 'staff-availability' %}">Check availability</a>
+      <a href="{% url 'staff-create' %}" class="btn btn-primary">Add staff</a>
+    </div>
   </div>
   {% if staff %}
     <table class="data-table">
@@ -37,6 +40,7 @@
             </td>
             <td class="data-table-actions">
               <a href="{% url 'staff-services' member.pk %}">Services</a>
+              <a href="{% url 'staff-hours' member.pk %}">Hours</a>
               <a href="{% url 'staff-edit' member.pk %}">Edit</a>
               <form method="post" action="{% url 'staff-delete' member.pk %}" class="inline-form" onsubmit="return confirm('Remove {{ member.name }}?');">
                 {% csrf_token %}

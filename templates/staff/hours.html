@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Working hours · {{ staff.name }} · SalonOS{% endblock %}
+{% block page_title %}Working hours — {{ staff.name }}{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 640px;">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Off</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form, label in rows %}
+          <tr>
+            <td>{{ label }}</td>
+            <td>{{ form.id }}{{ form.start_time }}</td>
+            <td>{{ form.end_time }}</td>
+            <td>{{ form.is_off }}</td>
+          </tr>
+          {% if form.non_field_errors %}
+            <tr><td colspan="4"><div class="field-error">{{ form.non_field_errors.0 }}</div></td></tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="muted" style="margin-top: 16px;">Check "Off" for any day this person doesn't work — start/end time are ignored for off days.</p>
+    <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Save hours</button>
+  </form>
+</section>
+{% endblock %}

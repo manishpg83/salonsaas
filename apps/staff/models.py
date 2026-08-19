@@ -32,10 +32,6 @@ class Staff(SalonScopedModel):
     joining_date = models.DateField()
     salary = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     commission_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    # Structured per-day schedule arrives with Phase 3.2's availability
-    # model; this is a free-form placeholder in the meantime, same pattern
-    # as Salon.business_hours.
-    working_hours = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -60,3 +56,42 @@ class StaffService(SalonScopedModel):
 
     def __str__(self):
         return f"{self.staff.name} -> {self.service.name}"
+
+
+class WeekDay(models.IntegerChoices):
+    """Matches Python's `date.weekday()` numbering (Monday=0..Sunday=6) so
+    availability lookups can index straight off `date.weekday()` with no
+    remapping."""
+
+    MONDAY = 0, "Monday"
+    TUESDAY = 1, "Tuesday"
+    WEDNESDAY = 2, "Wednesday"
+    THURSDAY = 3, "Thursday"
+    FRIDAY = 4, "Friday"
+    SATURDAY = 5, "Saturday"
+    SUNDAY = 6, "Sunday"
+
+
+class StaffWorkingHours(SalonScopedModel):
+    """One weekday's schedule for a staff member. A staff member has at most
+    one row per weekday; a missing row means "not scheduled that day" (same
+    as `is_off=True`) — the availability lookup (3.2) treats both the same
+    way, so callers don't need to distinguish "never set up" from "marked
+    off"."""
+
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name="working_hours")
+    weekday = models.PositiveSmallIntegerField(choices=WeekDay.choices)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    is_off = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["weekday"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["staff", "weekday"], name="unique_working_hours_per_staff_weekday"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.staff.name} - {self.get_weekday_display()}"

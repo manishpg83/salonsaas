@@ -238,9 +238,15 @@ Strategy: **shared database, shared schema, row-level scoping by `salon`.**
 
 ## 5. Commands
 
+> **Venv location.** The virtualenv lives at `../.venv` — **one directory above**
+> this repo root (i.e. `d:\projects\salon_saas\.venv`, not
+> `d:\projects\salon_saas\salonos\.venv`). It's gitignored from both
+> locations, so don't assume a missing `salonos/.venv` means no venv exists —
+> check the parent directory before creating a new one. Activate it, or on
+> Windows call it directly: `..\.venv\Scripts\python.exe manage.py ...`.
+
 ```bash
-# setup
-python -m venv .venv && source .venv/bin/activate
+# setup (venv already exists one level up — see note above; don't recreate it)
 pip install -r requirements.txt
 
 # db
@@ -255,10 +261,27 @@ pytest -q
 
 # create super admin (SaaS owner)
 python manage.py createsuperuser
+
+# seed one demo salon (branch, one login per role, services, staff) for manual QA
+python manage.py seed_demo_data          # safe to re-run
+python manage.py seed_demo_data --reset  # wipe the demo salon and reseed fresh
 ```
 
 Settings module for local dev: `config.settings.dev`
 (set `DJANGO_SETTINGS_MODULE=config.settings.dev`).
+
+> **`seed_demo_data`** (`apps/core/management/commands/seed_demo_data.py`) is a
+> management command, not a fixture/`loaddata` file — fixtures would need
+> pre-hashed passwords baked into JSON and don't cleanly handle the
+> `apps.salons` signal that gives every newly-created `User` their own
+> personal Salon (loaddata's `raw=True` save also skips model logic that
+> depends on other rows already existing). The command builds everything
+> through the same ORM path the app itself uses — `create_user()` for real
+> password hashing, then it reassigns the demo logins from their
+> auto-created personal salon onto the shared demo one — and is idempotent
+> (`get_or_create`/`update_or_create` throughout), so it's safe to run on
+> every fresh clone/reset instead of maintaining fixture JSON by hand. Refuses
+> to run when `DEBUG=False` unless `--force` is passed.
 
 ---
 

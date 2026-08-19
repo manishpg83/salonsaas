@@ -18,7 +18,6 @@ def _staff_payload(**overrides):
         "joining_date": "2026-01-15",
         "salary": "25000",
         "commission_percent": "10",
-        "working_hours": "{}",
         "is_active": "on",
     }
     payload.update(overrides)

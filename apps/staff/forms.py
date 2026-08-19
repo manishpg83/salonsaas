@@ -1,9 +1,10 @@
 from django import forms
+from django.forms import modelformset_factory
 
 from apps.catalog.models import Service
 from apps.salons.models import Membership
 
-from .models import Staff
+from .models import Staff, StaffWorkingHours
 
 
 class StaffForm(forms.ModelForm):
@@ -19,12 +20,10 @@ class StaffForm(forms.ModelForm):
             "joining_date",
             "salary",
             "commission_percent",
-            "working_hours",
             "is_active",
         ]
         widgets = {
             "joining_date": forms.DateInput(attrs={"type": "date"}),
-            "working_hours": forms.Textarea(attrs={"rows": 3}),
         }
 
     def __init__(self, *args, salon, **kwargs):
@@ -53,3 +52,30 @@ class StaffServicesForm(forms.Form):
         self.fields["services"].queryset = Service.objects.filter(salon=salon).select_related(
             "category"
         )
+
+
+# Exactly one row per weekday (see StaffWorkingHours.Meta.unique_together) —
+# the view ensures all 7 rows exist before building this, so extra=0 and no
+# add/delete UI is needed. `weekday` isn't a form field: it's fixed per row
+# and only ever set by the view via get_or_create, never client-editable.
+StaffWorkingHoursFormSet = modelformset_factory(
+    StaffWorkingHours,
+    fields=["start_time", "end_time", "is_off"],
+    widgets={
+        "start_time": forms.TimeInput(attrs={"type": "time"}),
+        "end_time": forms.TimeInput(attrs={"type": "time"}),
+    },
+    extra=0,
+    can_delete=False,
+)
+
+
+class AvailabilityLookupForm(forms.Form):
+    service = forms.ModelChoiceField(queryset=Service.objects.none())
+    date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
+
+    def __init__(self, *args, salon, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["service"].queryset = Service.objects.filter(
+            salon=salon, is_active=True
+        ).select_related("category")
