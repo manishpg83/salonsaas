@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Log in · SalonOS{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+  <div class="auth-brand">SalonOS</div>
+  <h2>Log in</h2>
+
+  {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for err in field.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary btn-block">Log in</button>
+  </form>
+
+  <p class="auth-switch">Don't have an account? <a href="{% url 'register' %}">Sign up</a></p>
+</div>
+{% endblock %}

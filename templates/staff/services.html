@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Services · {{ staff.name }} · SalonOS{% endblock %}
+{% block page_title %}Services — {{ staff.name }}{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 520px;">
+  <p class="muted">Choose which services {{ staff.name }} can perform.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="form-field">
+      {{ form.services }}
+      {% for err in form.services.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+  </form>
+</section>
+{% endblock %}

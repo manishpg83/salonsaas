@@ -1,0 +1,47 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SalonOS{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body>
+{% if user.is_authenticated %}
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">SalonOS</div>
+      <nav>
+        <a href="{% url 'dashboard' %}" class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}">Dashboard</a>
+        <a href="{% url 'staff-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':5' == 'staff' %} active{% endif %}">Staff</a>
+      </nav>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+        <div class="topbar-user">
+          <span>{{ user.full_name }}</span>
+          <form method="post" action="{% url 'logout' %}" class="inline-form">
+            {% csrf_token %}
+            <button type="submit" class="link-button">Log out</button>
+          </form>
+        </div>
+      </header>
+      <main class="content">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+{% else %}
+  <div class="auth-shell">
+    {% block auth_content %}{% endblock %}
+  </div>
+{% endif %}
+<script src="{% static 'js/forms.js' %}"></script>
+</body>
+</html>

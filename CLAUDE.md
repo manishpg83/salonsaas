@@ -60,8 +60,8 @@ At the start of every session, read `PROGRESS.md` first to see where we are.
 |----------------|---------------------------------------------------------------|
 | Language       | Python 3.12+                                                   |
 | Framework      | Django 5.x                                                     |
-| API            | Django REST Framework (DRF)                                    |
-| Auth           | djangorestframework-simplejwt (JWT access/refresh)            |
+| UI             | Django Templates — server-rendered HTML (monolith, no SPA)    |
+| Auth           | Django's built-in session auth (`django.contrib.auth`)        |
 | Database       | PostgreSQL 15+                                                 |
 | DB driver      | psycopg[binary]                                                |
 | Config         | django-environ (all secrets via `.env`, never hardcoded)      |
@@ -73,12 +73,27 @@ At the start of every session, read `PROGRESS.md` first to see where we are.
 
 > **BLUEPRINT STACK OVERRIDE.** `docs/blueprint.md` (section 32) recommends
 > Next.js + Node/NestJS + Supabase. **Ignore that backend recommendation.**
-> This project's backend is **Django + DRF + PostgreSQL**, and this table is the
+> This project's backend is **Django + PostgreSQL**, and this table is the
 > single authoritative stack. The blueprint's *non-backend* choices still stand
 > and map cleanly onto Django: PostgreSQL (identical), Razorpay, WhatsApp Cloud
-> API, Resend/SES email, and S3 storage (via `django-storages`). A Next.js
-> frontend may still be added later — it will consume this DRF API. Auth is
-> Django + SimpleJWT (not Supabase Auth).
+> API, Resend/SES email, and S3 storage (via `django-storages`). Auth is
+> Django's own session auth (not Supabase Auth, not JWT).
+
+> **ARCHITECTURE PIVOT (2026-08-18).** Phases 0–2 were built API-first with
+> Django REST Framework + `djangorestframework-simplejwt` (JWT). We've since
+> switched to a **Django Templates monolith**: server-rendered HTML pages,
+> session-based auth, `Form`/`ModelForm` instead of serializers. **From Phase 3
+> onward, every module is built this way** — see §4.2–§4.4 for the
+> template-era conventions.
+>
+> The Phase 0–2 DRF/JWT code (`rest_framework`, `rest_framework_simplejwt`,
+> every `serializers.py`, every `ModelViewSet`, the `/api/v1/...` routes) has
+> **not been deleted** — deleting six modules of tested, working code isn't
+> reversible, and wasn't asked for. It still exists, still has passing tests,
+> and still technically works, but it is no longer the primary interface and
+> is not maintained going forward. Don't add DRF endpoints to new modules
+> unless explicitly asked. `djangorestframework` and
+> `djangorestframework-simplejwt` stay in `requirements.txt` for that reason.
 
 Do **not** add dependencies beyond this table without asking. When a phase needs
 a new one, it is called out in that phase.
@@ -100,8 +115,8 @@ salonos/
 │       └── prod.py
 ├── apps/
 │   ├── core/               # base models, mixins, tenancy, shared utils
-│   ├── accounts/           # User, auth, OTP, JWT
-│   ├── salons/             # Salon, Branch, onboarding, Membership, Role
+│   ├── accounts/           # User, auth, OTP, login/register/logout pages
+│   ├── salons/             # Salon, Branch, onboarding, Membership, Role, dashboard page
 │   ├── catalog/            # Service, ServiceCategory, Package, Membership plans
 │   ├── staff/              # Staff, StaffService, availability, attendance, commission
 │   ├── crm/                # Customer, CustomerHistory, Lead, LeadSource
@@ -112,6 +127,10 @@ salonos/
 │   ├── reports/            # aggregation/report endpoints (read-only)
 │   ├── dashboard/          # dashboard aggregation endpoints (read-only)
 │   └── subscriptions/      # SaaS plans, salon subscriptions (super admin)
+├── templates/               # project-wide: base.html (sidebar+topbar shell)
+├── static/
+│   ├── css/                 # base.css — shared design system
+│   └── js/                  # small vanilla-JS polish (no build step, no framework)
 ├── docs/
 │   └── blueprint.md
 ├── tests/                  # optional cross-app tests; app tests live in each app
@@ -124,8 +143,18 @@ salonos/
 └── CLAUDE.md
 ```
 
-Every app has: `models.py`, `serializers.py`, `views.py` (DRF viewsets),
-`urls.py`, `permissions.py` (if needed), `admin.py`, `tests/`, `migrations/`.
+**From Phase 3 onward**, every app has: `models.py`, `views.py` (Django views —
+function-based unless a module clearly wants class-based), `forms.py`
+(`Form`/`ModelForm`), `urls.py`, `admin.py`, `tests/`, `migrations/`, and its
+own `templates/<app_label>/*.html` (list page, create/edit form page — Django's
+convention of namespacing templates under the app's label avoids collisions
+between apps). Phase 0–2 apps additionally still carry `serializers.py` and a
+DRF `views.py`/`urls.py` from before the pivot — untouched, not a pattern to
+copy for new work. Since `accounts` and `salons` already had a DRF
+`views.py`/`urls.py` when the pivot happened, their new template views live
+in parallel `web_views.py`/`web_urls.py` files instead of colliding with the
+existing ones. Apps started fresh from Phase 3 onward don't have that
+baggage — just use `views.py`/`urls.py` directly for template views.
 
 ### 4.2 Multi-tenancy (the most important rule)
 
@@ -139,14 +168,18 @@ Strategy: **shared database, shared schema, row-level scoping by `salon`.**
 - **Every business model inherits `SalonScopedModel`** (Customer, Appointment,
   Service, Product, Invoice, etc.). The only models that are *not* salon-scoped:
   `User`, `Salon`, `Role`, `SubscriptionPlan`, and Super-Admin models.
-- Resolve the "current salon" from the authenticated user's active `Membership`.
-  Store it on `request.salon` via middleware/DRF, or resolve it in a shared
-  `SalonScopedViewSet` base class.
-- Provide a base viewset `SalonScopedViewSet` in `apps/core` that:
-  - filters `get_queryset()` to `request.salon`, and
-  - auto-sets `salon=request.salon` on create (`perform_create`).
-  All business viewsets inherit from it. **Never** query a scoped model without
-  going through this scoping.
+- Resolve the "current salon" from the authenticated user's active `Membership`,
+  via `apps.core.salon_context.get_active_membership(user)`.
+- **Template views (Phase 3+):** decorate the view with
+  `apps.core.decorators.salon_member_required`, which wraps Django's
+  `login_required`, then sets `request.membership`/`request.salon` before the
+  view body runs. Every template view that touches a scoped model uses this
+  decorator and filters its queryset by `salon=request.salon` explicitly —
+  there's no automatic queryset-filtering magic like the old viewset had, so
+  **never** query a scoped model without that explicit filter.
+- **DRF views (Phase 0–2, legacy):** `SalonScopedViewSet` in `apps/core/views.py`
+  filters `get_queryset()` to `request.salon` and auto-sets `salon=request.salon`
+  on create. Still there, still correct, just not how new modules are built.
 - Write a reusable test helper that asserts salon A cannot read/write salon B's
   objects. Every scoped module must include a cross-tenant isolation test.
 
@@ -157,27 +190,47 @@ Strategy: **shared database, shared schema, row-level scoping by `salon`.**
   `is_superuser` on `User`.
 - A `Membership` model links `User ↔ Salon ↔ Role (+ optional Branch)`. A user
   can belong to multiple salons; the active salon is chosen at login/context.
-- DRF permission classes in `apps/core/permissions.py`: `IsOwner`,
-  `IsOwnerOrManager`, `IsSalonMember`, etc. Keep permission logic role-based for
-  MVP. Granular per-action (view/create/edit/delete/export) permissions are a
-  Version 2 concern — do **not** build them now.
+- **Template views (Phase 3+):** role checks are a plain `if` at the top of the
+  view body (e.g. `if request.membership.role not in (Role.OWNER, Role.MANAGER): raise PermissionDenied`),
+  not a class-based permission system — there's no DRF permission pipeline to
+  hook into anymore. Keep it role-based for MVP; granular per-action
+  permissions are still a Version 2 concern.
+- **DRF views (Phase 0–2, legacy):** permission classes in
+  `apps/core/permissions.py` — `IsOwner`, `IsOwnerOrManager`, `IsSalonMember`.
+  Still there, not the pattern for new work.
 
-### 4.4 API conventions
+### 4.4 Template & form conventions
 
-- All endpoints under `/api/v1/`.
-- Use DRF `ModelViewSet` + routers unless a module needs custom actions.
-- Serializers: explicit `fields`, never `fields = '__all__'` on write.
-- Money: store as integer paise (or `DecimalField(max_digits=12, decimal_places=2)`).
-  Pick `DecimalField` for MVP; be consistent everywhere.
-- Enums: use Django `TextChoices`.
-- Timestamps: `USE_TZ = True`, store UTC.
-- Pagination: DRF `PageNumberPagination`, default page size 20.
-- Errors: rely on DRF's default validation error format.
+- Pages are plain Django views (function-based unless a module clearly wants
+  class-based) returning `render(request, "app_label/page.html", context)`.
+- Forms: `django.forms.Form`/`ModelForm`, explicit `fields` (never `fields =
+  "__all__"` on a `ModelForm`), matching the old "no `fields = '__all__'`"
+  rule from the API era.
+- Every list page needs a matching create page; edit reuses the same form
+  template where practical. Deletes are a POST-only action (a button in a
+  small `<form>`, not a bare link) — never a GET, since GET must stay
+  side-effect-free.
+- Cross-tenant FK choices: when a form field references another scoped model
+  (e.g. a Service form's `category` dropdown), restrict the field's queryset
+  to `request.salon` in the view/form `__init__`, the same way the old DRF
+  serializers validated `validate_<field>` — a client (or a malicious POST)
+  must not be able to attach an object from another salon.
+- Success/error feedback via `django.contrib.messages`, rendered in
+  `base.html`. Field errors render inline via `{{ field.errors }}`.
+- Money: `DecimalField(max_digits=12, decimal_places=2)`, consistent
+  everywhere (unchanged from the API era).
+- Enums: Django `TextChoices` (unchanged).
+- Timestamps: `USE_TZ = True`, store UTC (unchanged).
+- **DRF views (Phase 0–2, legacy):** still live under `/api/v1/...` with
+  serializers, `ModelViewSet` + routers, `PageNumberPagination` (page size
+  20). Untouched; not how new endpoints get built.
 
 ### 4.5 Naming
 
 - Models singular PascalCase (`Customer`). DB tables default.
-- Endpoints plural kebab/snake per DRF router defaults (`/api/v1/customers/`).
+- Template page URLs plural where the page is a list, singular action verbs
+  for forms (`/services/`, `/services/new/`, `/services/<id>/edit/`).
+  Legacy DRF endpoints keep their existing `/api/v1/customers/`-style paths.
 - Conventional commits for suggested messages (`feat:`, `fix:`, `chore:`,
   `test:`, `docs:`).
 
@@ -229,6 +282,14 @@ Legend: each **Module** = one build-then-stop unit. Fields are the minimum; see
 > NOTE: This ordering is dependency-driven. It differs slightly from the
 > blueprint's MVP list (Dashboard is built late because it aggregates data from
 > other modules that must exist first).
+
+> NOTE: Phases 0–2 below describe what was actually built at the time — DRF
+> endpoints, serializers, JWT. Left as historical record, not edited after the
+> fact. **From Phase 3 onward, wherever a module description below says
+> "CRUD" or "endpoints," read that as: a list page, a create/edit form page
+> (Django `ModelForm`), and a delete action — server-rendered templates per
+> §4.4, not a DRF API.** Every such module also ships whatever `templates/`
+> pages it needs, styled with the shared `static/css/base.css`.
 
 ---
 
@@ -443,8 +504,10 @@ white-label · Super Admin panel & SaaS subscription billing (Razorpay).
 A module is done only when **all** are true:
 
 - [ ] Models + migrations created; `migrate` runs cleanly.
-- [ ] Serializers + DRF viewset/endpoints implemented under `/api/v1/`.
-- [ ] Salon scoping enforced (if it's a business model).
+- [ ] Views + templates implemented (list page, create/edit form) — or, for
+      Phase 0–2 legacy modules only, serializers + DRF viewset under `/api/v1/`.
+- [ ] Salon scoping enforced (if it's a business model) — `salon_member_required`
+      + explicit `salon=request.salon` filtering for template views.
 - [ ] Permissions applied (correct roles allowed/denied).
 - [ ] Tests written and passing: happy path, validation error, **and** a
       cross-tenant isolation test for scoped models.

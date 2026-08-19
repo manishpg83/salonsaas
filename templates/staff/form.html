@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{% if staff %}Edit staff{% else %}Add staff{% endif %} · SalonOS{% endblock %}
+{% block page_title %}{% if staff %}Edit {{ staff.name }}{% else %}Add staff{% endif %}{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 520px;">
+  {% if form.non_field_errors %}
+    <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      {% if field.name == "is_active" %}
+        <div class="form-field form-field-checkbox">
+          <label for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>
+        </div>
+      {% else %}
+        <div class="form-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="muted">{{ field.help_text }}</p>{% endif %}
+          {% for err in field.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">{% if staff %}Save changes{% else %}Add staff{% endif %}</button>
+  </form>
+</section>
+{% endblock %}

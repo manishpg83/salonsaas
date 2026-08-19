@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Staff · SalonOS{% endblock %}
+{% block page_title %}Staff{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Staff</h3>
+    <a href="{% url 'staff-create' %}" class="btn btn-primary">Add staff</a>
+  </div>
+  {% if staff %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Branch</th>
+          <th>Mobile</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in staff %}
+          <tr>
+            <td>{{ member.name }}</td>
+            <td>{{ member.role|default:"—" }}</td>
+            <td>{{ member.branch.name|default:"All branches" }}</td>
+            <td>{{ member.mobile }}</td>
+            <td>
+              {% if member.is_active %}
+                <span class="badge badge-active">Active</span>
+              {% else %}
+                <span class="badge">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="data-table-actions">
+              <a href="{% url 'staff-services' member.pk %}">Services</a>
+              <a href="{% url 'staff-edit' member.pk %}">Edit</a>
+              <form method="post" action="{% url 'staff-delete' member.pk %}" class="inline-form" onsubmit="return confirm('Remove {{ member.name }}?');">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No staff yet. Add your first team member to get started.</p>
+  {% endif %}
+</section>
+{% endblock %}

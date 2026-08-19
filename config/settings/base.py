@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.salons",
     "apps.catalog",
+    "apps.staff",
 ]
 
 # Custom user model — email login, no username (set before the first
@@ -75,7 +76,10 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        # Project-wide templates (base.html, the shared sidebar+topbar shell)
+        # live in salonos/templates/. Each app's own templates still resolve
+        # via APP_DIRS (salonos/apps/<app>/templates/<app_label>/*.html).
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -129,6 +133,16 @@ USE_TZ = True  # store everything in UTC; convert to local time at the edges
 # --- Static files --------------------------------------------------------------
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+
+# --- Session auth (Django Templates era, Phase 3+) ---------------------------
+# Where to send a user who hits @salon_member_required / @login_required
+# while logged out, and where "log in" / "log out" send them afterward.
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "dashboard"
+LOGOUT_REDIRECT_URL = "login"
 
 
 # --- CORS ------------------------------------------------------------------

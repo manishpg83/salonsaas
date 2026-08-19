@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · SalonOS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h2>{{ salon.name }}</h2>
+  <p class="muted">You are the <strong>{{ membership.role }}</strong> of this salon.</p>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Services</h3>
+  </div>
+  {% if services %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Duration</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service in services %}
+          <tr>
+            <td>{{ service.name }}</td>
+            <td>{{ service.category.name }}</td>
+            <td>₹{{ service.price }}</td>
+            <td>{{ service.duration_minutes }} min</td>
+            <td>
+              {% if service.is_active %}
+                <span class="badge badge-active">Active</span>
+              {% else %}
+                <span class="badge">Inactive</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No services yet. Add some from the admin panel or the API to see them here.</p>
+  {% endif %}
+</section>
+{% endblock %}
