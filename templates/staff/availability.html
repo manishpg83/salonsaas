@@ -27,6 +27,7 @@
     <h3>Free staff</h3>
   </div>
   {% if free_staff %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -45,6 +46,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="muted">No staff are free for that service on this date.</p>
   {% endif %}

@@ -10,7 +10,7 @@ from apps.salons.models import Role
 from apps.scheduling.models import Appointment
 
 from .forms import ExpenseForm, InvoiceDiscountForm, InvoiceItemForm, PaymentForm
-from .models import Expense, Invoice, InvoiceItem
+from .models import Expense, Invoice, InvoiceItem, Payment
 
 
 def _require_manager(request):
@@ -63,7 +63,20 @@ def invoice_generate_view(request, appointment_pk):
             unit_price=line.price,
             tax_percent=line.service.tax_percent,
         )
+    if appointment.advance > 0:
+        Payment.objects.create(
+            salon=request.salon,
+            invoice=invoice,
+            method=Payment.Method.ADVANCE,
+            amount=appointment.advance,
+            reference="Advance paid at booking",
+        )
     _recalculate_invoice(invoice)
+    if invoice.is_fully_paid:
+        try:
+            appointment.transition_to(Appointment.Status.PAID)
+        except ValueError:
+            pass  # already PAID (or otherwise not COMPLETED) — nothing to do
     messages.success(request, f"{invoice.invoice_number} generated.")
     return redirect("invoice-detail", pk=invoice.pk)
 

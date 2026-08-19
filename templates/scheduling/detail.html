@@ -9,6 +9,7 @@
     <h3>{{ appointment.customer.name }} — {{ appointment.date }} {{ appointment.time }}</h3>
     <a href="{% url 'appointment-edit' appointment.pk %}" class="btn btn-primary">Edit</a>
   </div>
+  <div class="table-responsive">
   <table class="data-table">
     <tbody>
       <tr><td>Status</td><td><span class="badge">{{ appointment.get_status_display }}</span></td></tr>
@@ -20,6 +21,7 @@
       <tr><td>Notes</td><td>{{ appointment.notes|default:"—" }}</td></tr>
     </tbody>
   </table>
+  </div>
 
   {% if next_statuses %}
     <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
@@ -40,6 +42,7 @@
     <a href="{% url 'appointment-services' appointment.pk %}">Manage services</a>
   </div>
   {% if lines %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -60,6 +63,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="muted">No services added yet.</p>
   {% endif %}

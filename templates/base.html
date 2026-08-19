@@ -9,19 +9,25 @@
 <body>
 {% if user.is_authenticated %}
   <div class="app-shell">
+    <div class="sidebar-backdrop"></div>
     <aside class="sidebar">
       <div class="brand">SalonOS</div>
       <nav>
         <a href="{% url 'dashboard' %}" class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}">Dashboard</a>
-        <a href="{% url 'staff-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':5' == 'staff' %} active{% endif %}">Staff</a>
+        {% if request.membership.role == "OWNER" or request.membership.role == "MANAGER" %}
+          <a href="{% url 'staff-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':5' == 'staff' %} active{% endif %}">Staff</a>
+        {% endif %}
         <a href="{% url 'customer-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':9' == 'customer-' %} active{% endif %}">Customers</a>
         <a href="{% url 'appointment-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':12' == 'appointment-' %} active{% endif %}">Appointments</a>
         <a href="{% url 'invoice-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'invoice-' %} active{% endif %}">Billing</a>
-        <a href="{% url 'expense-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'expense-' %} active{% endif %}">Expenses</a>
+        {% if request.membership.role == "OWNER" or request.membership.role == "MANAGER" %}
+          <a href="{% url 'expense-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'expense-' %} active{% endif %}">Expenses</a>
+        {% endif %}
       </nav>
     </aside>
     <div class="main">
       <header class="topbar">
+        <button type="button" class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
         <div class="topbar-title">{% block page_title %}{% endblock %}</div>
         <div class="topbar-user">
           <span>{{ user.full_name }}</span>

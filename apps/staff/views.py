@@ -33,7 +33,7 @@ def staff_list_view(request):
 def staff_create_view(request):
     _require_manager(request)
     if request.method == "POST":
-        form = StaffForm(request.POST, salon=request.salon)
+        form = StaffForm(request.POST, request.FILES, salon=request.salon)
         if form.is_valid():
             staff = form.save(commit=False)
             staff.salon = request.salon
@@ -52,7 +52,7 @@ def staff_edit_view(request, pk):
     staff = get_object_or_404(Staff, pk=pk, salon=request.salon)
 
     if request.method == "POST":
-        form = StaffForm(request.POST, instance=staff, salon=request.salon)
+        form = StaffForm(request.POST, request.FILES, instance=staff, salon=request.salon)
         if form.is_valid():
             form.save()
             messages.success(request, f"{staff.name} updated.")

@@ -14,6 +14,7 @@
     {% endif %}
   </div>
 
+  <div class="table-responsive">
   <table class="data-table">
     <thead>
       <tr>
@@ -36,6 +37,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 
   <form method="post" action="{% url 'invoice-add-item' invoice.pk %}" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 16px;">
     {% csrf_token %}
@@ -48,6 +50,7 @@
     <button type="submit" class="btn btn-primary">Add item</button>
   </form>
 
+  <div class="table-responsive">
   <table class="data-table" style="margin-top: 24px; max-width: 360px; margin-left: auto;">
     <tbody>
       <tr><td>Subtotal</td><td>₹{{ invoice.subtotal }}</td></tr>
@@ -63,10 +66,14 @@
         </td>
       </tr>
       <tr><td><strong>Total</strong></td><td><strong>₹{{ invoice.total }}</strong></td></tr>
+      {% if invoice.appointment.advance %}
+        <tr><td>Advance paid</td><td>₹{{ invoice.appointment.advance }}</td></tr>
+      {% endif %}
       <tr><td>Paid</td><td>₹{{ invoice.paid_total }}</td></tr>
       <tr><td>Balance due</td><td>₹{{ invoice.balance_due }}</td></tr>
     </tbody>
   </table>
+  </div>
 </section>
 
 <section class="card">
@@ -74,6 +81,7 @@
     <h3>Payments</h3>
   </div>
   {% if payments %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -94,6 +102,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="muted">No payments recorded yet.</p>
   {% endif %}

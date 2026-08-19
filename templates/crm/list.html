@@ -17,6 +17,7 @@
   </form>
 
   {% if customers %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -45,6 +46,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% elif query %}
     <p class="muted">No customers match "{{ query }}".</p>
   {% else %}

@@ -10,6 +10,7 @@
     <a href="{% url 'expense-create' %}" class="btn btn-primary">Add expense</a>
   </div>
   {% if expenses %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -38,6 +39,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="muted">No expenses recorded yet.</p>
   {% endif %}

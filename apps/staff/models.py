@@ -24,9 +24,10 @@ class Staff(SalonScopedModel):
         "salons.Branch", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )
     name = models.CharField(max_length=150)
-    # No file upload yet (django-storages isn't wired in until a later
-    # phase, per requirements.txt) — same URL-only approach as Salon.logo_url.
-    photo = models.URLField(blank=True)
+    # Local FileSystemStorage for now (MEDIA_ROOT) — swapping to
+    # django-storages/S3 for production is a later, separate change; the
+    # field itself doesn't need to know which storage backend is behind it.
+    photo = models.ImageField(upload_to="staff_photos/", blank=True)
     mobile = models.CharField(max_length=20)
     role = models.CharField(max_length=100, blank=True)
     joining_date = models.DateField()

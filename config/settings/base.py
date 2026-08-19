@@ -139,6 +139,14 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 
+# --- Media (user uploads, e.g. Staff.photo) -------------------------------------
+# Local FileSystemStorage for dev/MVP; swapping to django-storages/S3 for
+# production is a later, separate change (see requirements.txt).
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+
 # --- Session auth (Django Templates era, Phase 3+) ---------------------------
 # Where to send a user who hits @salon_member_required / @login_required
 # while logged out, and where "log in" / "log out" send them afterward.

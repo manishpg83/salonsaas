@@ -8,6 +8,7 @@
   <form method="post" novalidate>
     {% csrf_token %}
     {{ formset.management_form }}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -31,6 +32,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
     <p class="muted" style="margin-top: 16px;">Check "Off" for any day this person doesn't work — start/end time are ignored for off days.</p>
     <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Save hours</button>
   </form>

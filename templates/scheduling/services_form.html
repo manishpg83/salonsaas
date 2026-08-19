@@ -11,6 +11,7 @@
     {% if formset.non_form_errors %}
       <div class="alert alert-error">{{ formset.non_form_errors.0 }}</div>
     {% endif %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -33,6 +34,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
     <button type="submit" class="btn btn-primary" style="margin-top: 16px;">Save services</button>
   </form>
 </section>

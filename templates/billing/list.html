@@ -9,6 +9,7 @@
     <h3>Invoices</h3>
   </div>
   {% if invoices %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -41,6 +42,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="muted">No invoices yet. Generate one from a completed appointment.</p>
   {% endif %}

@@ -24,7 +24,7 @@ def _make_service(salon, name="Haircut", price="500.00", tax_percent="10.00", du
     )
 
 
-def _completed_appointment(client, salon, customer, service, discount="0"):
+def _completed_appointment(client, salon, customer, service, discount="0", advance="0"):
     """Books an appointment, adds one service line, and walks it through the
     status flow to COMPLETED — the only state a Phase 6.1 invoice can be
     generated from."""
@@ -36,7 +36,7 @@ def _completed_appointment(client, salon, customer, service, discount="0"):
             "date": "2026-09-01",
             "time": "10:00",
             "discount": discount,
-            "advance": "0",
+            "advance": advance,
             "notes": "",
         },
     )
@@ -163,6 +163,50 @@ def test_updating_discount_recomputes_total(make_web_client):
     assert invoice.total == 450
 
 
+def test_generate_invoice_with_no_advance_creates_no_payment(make_web_client):
+    client, membership = make_web_client("owner@example.com")
+    customer = _make_customer(membership.salon)
+    service = _make_service(membership.salon, price="500.00", tax_percent="0")
+    appointment = _completed_appointment(client, membership.salon, customer, service)
+
+    client.post(f"/appointments/{appointment.pk}/invoice/")
+
+    invoice = Invoice.objects.get(appointment=appointment)
+    assert invoice.payments.count() == 0
+    assert invoice.paid_total == 0
+
+
+def test_generating_invoice_records_the_appointments_advance_as_a_payment(make_web_client):
+    client, membership = make_web_client("owner@example.com")
+    customer = _make_customer(membership.salon)
+    service = _make_service(membership.salon, price="500.00", tax_percent="0")
+    appointment = _completed_appointment(client, membership.salon, customer, service, advance="200")
+
+    client.post(f"/appointments/{appointment.pk}/invoice/")
+
+    invoice = Invoice.objects.get(appointment=appointment)
+    assert invoice.paid_total == 200
+    assert invoice.balance_due == 300
+    assert not invoice.is_fully_paid
+    payment = invoice.payments.get()
+    assert payment.method == "ADVANCE"
+    assert payment.amount == 200
+
+
+def test_advance_covering_the_full_total_marks_appointment_paid_at_generation(make_web_client):
+    client, membership = make_web_client("owner@example.com")
+    customer = _make_customer(membership.salon)
+    service = _make_service(membership.salon, price="500.00", tax_percent="0")
+    appointment = _completed_appointment(client, membership.salon, customer, service, advance="500")
+
+    client.post(f"/appointments/{appointment.pk}/invoice/")
+
+    invoice = Invoice.objects.get(appointment=appointment)
+    appointment.refresh_from_db()
+    assert invoice.is_fully_paid
+    assert appointment.status == Appointment.Status.PAID
+
+
 def test_split_payment_summing_to_total_marks_appointment_paid(make_web_client):
     client, membership = make_web_client("owner@example.com")
     customer = _make_customer(membership.salon)
@@ -205,6 +249,28 @@ def test_invoice_detail_and_appointment_detail_pages_render(make_web_client):
 
     with_invoice = client.get(f"/appointments/{appointment.pk}/")
     assert invoice.invoice_number in with_invoice.content.decode()
+
+
+def test_invoice_detail_shows_advance_paid_row_only_when_there_is_one(make_web_client):
+    client, membership = make_web_client("owner@example.com")
+    customer = _make_customer(membership.salon)
+    service = _make_service(membership.salon, price="500.00", tax_percent="0")
+
+    no_advance_appointment = _completed_appointment(client, membership.salon, customer, service)
+    client.post(f"/appointments/{no_advance_appointment.pk}/invoice/")
+    no_advance_invoice = Invoice.objects.get(appointment=no_advance_appointment)
+    no_advance_detail = client.get(f"/invoices/{no_advance_invoice.pk}/").content.decode()
+    assert "Advance paid" not in no_advance_detail
+
+    customer2 = _make_customer(membership.salon, name="Second Customer", mobile="9876500001")
+    with_advance_appointment = _completed_appointment(
+        client, membership.salon, customer2, service, advance="150"
+    )
+    client.post(f"/appointments/{with_advance_appointment.pk}/invoice/")
+    with_advance_invoice = Invoice.objects.get(appointment=with_advance_appointment)
+    with_advance_detail = client.get(f"/invoices/{with_advance_invoice.pk}/").content.decode()
+    assert "Advance paid" in with_advance_detail
+    assert "150" in with_advance_detail
 
 
 def test_invoices_are_scoped_to_the_current_salon(make_web_client):

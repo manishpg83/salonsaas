@@ -5,6 +5,8 @@ Template pages (the primary interface as of the Phase 3 architecture pivot —
 see CLAUDE.md §3) are mounted at the root. The legacy Phase 0-2 DRF API is
 still live under /api/v1/ — untouched, not the pattern for new endpoints.
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
@@ -29,3 +31,6 @@ urlpatterns = [
     path('api/v1/salons/', include('apps.salons.urls')),
     path('api/v1/catalog/', include('apps.catalog.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

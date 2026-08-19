@@ -9,6 +9,7 @@
     <h3>Profile</h3>
     <a href="{% url 'customer-edit' customer.pk %}" class="btn btn-primary">Edit</a>
   </div>
+  <div class="table-responsive">
   <table class="data-table">
     <tbody>
       <tr><td>Mobile</td><td>{{ customer.mobile }}</td></tr>
@@ -21,6 +22,7 @@
       <tr><td>Notes</td><td>{{ customer.notes|default:"—" }}</td></tr>
     </tbody>
   </table>
+  </div>
 </section>
 
 <section class="card">

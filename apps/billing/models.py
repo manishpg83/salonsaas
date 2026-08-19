@@ -84,6 +84,7 @@ class Payment(SalonScopedModel):
         CARD = "CARD", "Card"
         BANK = "BANK", "Bank transfer"
         ONLINE = "ONLINE", "Online"
+        ADVANCE = "ADVANCE", "Advance (booking)"
 
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
     method = models.CharField(max_length=10, choices=Method.choices)

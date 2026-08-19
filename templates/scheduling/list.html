@@ -69,6 +69,7 @@
   </div>
 
   {% if appointments %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -101,6 +102,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="muted">No appointments in this range.</p>
   {% endif %}

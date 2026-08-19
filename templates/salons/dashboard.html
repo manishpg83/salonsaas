@@ -14,6 +14,7 @@
     <h3>Services</h3>
   </div>
   {% if services %}
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -42,6 +43,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% else %}
     <p class="muted">No services yet. Add some from the admin panel or the API to see them here.</p>
   {% endif %}
