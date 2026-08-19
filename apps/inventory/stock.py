@@ -4,14 +4,16 @@ apps.inventory's own views (purchases, manual adjustments) and by
 apps.scheduling (Phase 7.2 service consumption) so every stock change goes
 through the same ledger-then-recalculate path."""
 
+from decimal import Decimal
+
 from django.db.models import Sum
 
 from .models import ServiceProduct, StockTransaction
 
 
 def recalculate_stock(product):
-    total = product.stock_transactions.aggregate(total=Sum("quantity"))["total"] or 0
-    product.current_stock = total
+    total = product.stock_transactions.aggregate(total=Sum("quantity"))["total"]
+    product.current_stock = total if total is not None else Decimal("0.00")
     product.save(update_fields=["current_stock"])
 
 

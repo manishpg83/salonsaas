@@ -72,6 +72,21 @@ def test_completing_an_appointment_deducts_recipe_stock(make_web_client):
     assert f"Appointment #{appointment.pk}" in out_txn.reference
 
 
+def test_completing_an_appointment_deducts_a_fractional_recipe_quantity(make_web_client):
+    client, membership = make_web_client("owner@example.com")
+    customer = _make_customer(membership.salon)
+    service = _make_service(membership.salon)
+    product = _make_product(membership.salon)
+    ServiceProduct.objects.create(salon=membership.salon, service=service, product=product, quantity="0.5")
+    client.post(f"/products/{product.pk}/adjust/", {"quantity": "10", "reason": "opening stock"})
+
+    appointment = _booked_appointment(client, membership.salon, customer, service)
+    _advance_to(client, appointment, ["CONFIRMED", "ARRIVED", "IN_SERVICE", "COMPLETED"])
+
+    product.refresh_from_db()
+    assert product.current_stock == pytest.approx(9.5)
+
+
 def test_completing_an_appointment_without_a_recipe_leaves_stock_unchanged(make_web_client):
     client, membership = make_web_client("owner@example.com")
     customer = _make_customer(membership.salon)

@@ -99,6 +99,27 @@ def test_recording_a_purchase_brings_stock_in(make_web_client):
     assert txn.quantity == 20
 
 
+def test_fractional_quantities_are_supported_end_to_end(make_web_client):
+    """Not every product is bought or consumed as a whole unit (e.g. half a
+    bottle) — quantity fields throughout inventory are decimal, not int."""
+    client, membership = make_web_client("owner@example.com")
+    product = _make_product(membership.salon)
+    supplier = Supplier.objects.create(salon=membership.salon, name="Beauty Distributors")
+    client.post("/purchases/new/", {"supplier": supplier.pk, "date": "2026-09-01", "notes": ""})
+    purchase = Purchase.objects.get(salon=membership.salon)
+
+    client.post(
+        f"/purchases/{purchase.pk}/items/",
+        {"product": product.pk, "quantity": "2.5", "unit_cost": "100.00"},
+    )
+    product.refresh_from_db()
+    assert product.current_stock == pytest.approx(2.5)
+
+    client.post(f"/products/{product.pk}/adjust/", {"quantity": "-0.5", "reason": "used for demo"})
+    product.refresh_from_db()
+    assert product.current_stock == pytest.approx(2.0)
+
+
 def test_manual_stock_adjustment_changes_current_stock(make_web_client):
     client, membership = make_web_client("owner@example.com")
     product = _make_product(membership.salon)

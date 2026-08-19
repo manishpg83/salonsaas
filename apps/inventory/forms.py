@@ -84,9 +84,11 @@ class StockAdjustmentForm(forms.Form):
     apps/staff/forms.py's AvailabilityLookupForm for the same plain-Form
     pattern), only the delta and a human reason come from the user."""
 
-    quantity = forms.IntegerField(
-        help_text="Positive to add stock, negative to remove.",
-        widget=forms.NumberInput(attrs={"placeholder": "e.g. 10 or -3"}),
+    quantity = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Positive to add stock, negative to remove. Fractions are fine (e.g. 0.5).",
+        widget=forms.NumberInput(attrs={"placeholder": "e.g. 10, -3, or 0.5"}),
     )
     reason = forms.CharField(
         max_length=200,

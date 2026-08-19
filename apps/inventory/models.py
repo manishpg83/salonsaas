@@ -1,6 +1,13 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from apps.core.models import SalonScopedModel
+
+# Every stock quantity in this app (current_stock, min_stock, ledger
+# entries, purchase/recipe quantities) uses this same shape — not every
+# product is sold or consumed as a whole unit (e.g. 0.5 of a bottle per
+# service), so these are decimal, not integer.
+QUANTITY_KWARGS = {"max_digits": 10, "decimal_places": 2}
 
 
 class Supplier(SalonScopedModel):
@@ -47,8 +54,8 @@ class Product(SalonScopedModel):
     )
     purchase_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     selling_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    current_stock = models.IntegerField(default=0)
-    min_stock = models.IntegerField(default=0)
+    current_stock = models.DecimalField(default=0, **QUANTITY_KWARGS)
+    min_stock = models.DecimalField(default=0, **QUANTITY_KWARGS)
     expiry_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -79,14 +86,15 @@ class StockTransaction(SalonScopedModel):
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="stock_transactions")
     type = models.CharField(max_length=10, choices=Type.choices)
-    quantity = models.IntegerField()
+    quantity = models.DecimalField(**QUANTITY_KWARGS)
     reference = models.CharField(max_length=200, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.get_type_display()} {self.quantity:+d} — {self.product.name}"
+        sign = "+" if self.quantity >= 0 else ""
+        return f"{self.get_type_display()} {sign}{self.quantity} — {self.product.name}"
 
 
 class Purchase(SalonScopedModel):
@@ -116,7 +124,9 @@ class ServiceProduct(SalonScopedModel):
 
     service = models.ForeignKey("catalog.Service", on_delete=models.CASCADE, related_name="+")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="consumption_recipes")
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.DecimalField(
+        default=1, validators=[MinValueValidator(0)], **QUANTITY_KWARGS
+    )
 
     class Meta:
         constraints = [
@@ -132,7 +142,7 @@ class ServiceProduct(SalonScopedModel):
 class PurchaseItem(SalonScopedModel):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="+")
-    quantity = models.PositiveIntegerField()
+    quantity = models.DecimalField(validators=[MinValueValidator(0)], **QUANTITY_KWARGS)
     unit_cost = models.DecimalField(max_digits=12, decimal_places=2)
 
     @property

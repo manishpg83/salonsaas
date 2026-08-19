@@ -115,7 +115,7 @@
           <tr>
             <td>{{ txn.created_at|date:"d M Y, H:i" }}</td>
             <td>{{ txn.get_type_display }}</td>
-            <td>{{ txn.quantity|stringformat:"+d" }}</td>
+            <td>{% if txn.quantity > 0 %}+{% endif %}{{ txn.quantity }}</td>
             <td>{{ txn.reference|default:"—" }}</td>
           </tr>
         {% endfor %}
