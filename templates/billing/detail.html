@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{ invoice.invoice_number }} · SalonOS{% endblock %}
+{% block page_title %}{{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>{{ invoice.appointment.customer.name }} — {{ invoice.appointment.date }}</h3>
+    {% if invoice.is_fully_paid %}
+      <span class="badge badge-active">Fully paid</span>
+    {% else %}
+      <span class="badge">Balance due: ₹{{ invoice.balance_due }}</span>
+    {% endif %}
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Unit price</th>
+        <th>Tax %</th>
+        <th>Line total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td>{{ item.description }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>₹{{ item.unit_price }}</td>
+          <td>{{ item.tax_percent }}%</td>
+          <td>₹{{ item.line_total }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <form method="post" action="{% url 'invoice-add-item' invoice.pk %}" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 16px;">
+    {% csrf_token %}
+    {% for field in item_form %}
+      <div class="form-field" style="margin-bottom: 0;">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Add item</button>
+  </form>
+
+  <table class="data-table" style="margin-top: 24px; max-width: 360px; margin-left: auto;">
+    <tbody>
+      <tr><td>Subtotal</td><td>₹{{ invoice.subtotal }}</td></tr>
+      <tr><td>Tax</td><td>₹{{ invoice.tax_total }}</td></tr>
+      <tr>
+        <td>Discount</td>
+        <td>
+          <form method="post" action="{% url 'invoice-update-discount' invoice.pk %}" style="display: flex; gap: 8px; align-items: center;">
+            {% csrf_token %}
+            {{ discount_form.discount }}
+            <button type="submit" class="btn btn-primary">Update</button>
+          </form>
+        </td>
+      </tr>
+      <tr><td><strong>Total</strong></td><td><strong>₹{{ invoice.total }}</strong></td></tr>
+      <tr><td>Paid</td><td>₹{{ invoice.paid_total }}</td></tr>
+      <tr><td>Balance due</td><td>₹{{ invoice.balance_due }}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Payments</h3>
+  </div>
+  {% if payments %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Amount</th>
+          <th>Reference</th>
+          <th>Recorded</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in payments %}
+          <tr>
+            <td>{{ payment.get_method_display }}</td>
+            <td>₹{{ payment.amount }}</td>
+            <td>{{ payment.reference|default:"—" }}</td>
+            <td>{{ payment.created_at|date:"d M Y, H:i" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No payments recorded yet.</p>
+  {% endif %}
+
+  {% if not invoice.is_fully_paid %}
+    <form method="post" action="{% url 'invoice-add-payment' invoice.pk %}" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 16px;">
+      {% csrf_token %}
+      {% for field in payment_form %}
+        <div class="form-field" style="margin-bottom: 0;">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Record payment</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

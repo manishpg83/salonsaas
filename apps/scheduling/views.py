@@ -224,7 +224,15 @@ def appointment_detail_view(request, pk):
     return render(
         request,
         "scheduling/detail.html",
-        {"appointment": appointment, "lines": lines, "next_statuses": appointment.next_statuses()},
+        {
+            "appointment": appointment,
+            "lines": lines,
+            "next_statuses": appointment.next_statuses(),
+            # Reverse OneToOne accessor raises DoesNotExist when unset — the
+            # Django-generated exception subclasses AttributeError
+            # specifically so getattr()/hasattr() work here.
+            "invoice": getattr(appointment, "invoice", None),
+        },
     )
 
 

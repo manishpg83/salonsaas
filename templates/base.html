@@ -16,6 +16,8 @@
         <a href="{% url 'staff-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':5' == 'staff' %} active{% endif %}">Staff</a>
         <a href="{% url 'customer-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':9' == 'customer-' %} active{% endif %}">Customers</a>
         <a href="{% url 'appointment-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':12' == 'appointment-' %} active{% endif %}">Appointments</a>
+        <a href="{% url 'invoice-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'invoice-' %} active{% endif %}">Billing</a>
+        <a href="{% url 'expense-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'expense-' %} active{% endif %}">Expenses</a>
       </nav>
     </aside>
     <div class="main">

@@ -64,4 +64,20 @@
     <p class="muted">No services added yet.</p>
   {% endif %}
 </section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Billing</h3>
+  </div>
+  {% if invoice %}
+    <p>{{ invoice.invoice_number }} — <a href="{% url 'invoice-detail' invoice.pk %}">View invoice</a></p>
+  {% elif appointment.status == "COMPLETED" %}
+    <form method="post" action="{% url 'invoice-generate' appointment.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Generate invoice</button>
+    </form>
+  {% else %}
+    <p class="muted">An invoice can be generated once this appointment is marked Completed.</p>
+  {% endif %}
+</section>
 {% endblock %}

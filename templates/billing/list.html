@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices · SalonOS{% endblock %}
+{% block page_title %}Invoices{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Invoices</h3>
+  </div>
+  {% if invoices %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Invoice</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Total</th>
+          <th>Paid</th>
+          <th>Balance</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+          <tr>
+            <td>{{ invoice.invoice_number }}</td>
+            <td>{{ invoice.appointment.customer.name }}</td>
+            <td>{{ invoice.appointment.date }}</td>
+            <td>₹{{ invoice.total }}</td>
+            <td>₹{{ invoice.paid_total }}</td>
+            <td>
+              {% if invoice.is_fully_paid %}
+                <span class="badge badge-active">Paid</span>
+              {% else %}
+                ₹{{ invoice.balance_due }}
+              {% endif %}
+            </td>
+            <td><a href="{% url 'invoice-detail' invoice.pk %}">View</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No invoices yet. Generate one from a completed appointment.</p>
+  {% endif %}
+</section>
+{% endblock %}

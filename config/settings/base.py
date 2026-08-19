@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "apps.staff",
     "apps.crm",
     "apps.scheduling",
+    "apps.billing",
 ]
 
 # Custom user model — email login, no username (set before the first
