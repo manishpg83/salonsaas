@@ -15,6 +15,7 @@
         <a href="{% url 'dashboard' %}" class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}">Dashboard</a>
         <a href="{% url 'staff-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':5' == 'staff' %} active{% endif %}">Staff</a>
         <a href="{% url 'customer-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':9' == 'customer-' %} active{% endif %}">Customers</a>
+        <a href="{% url 'appointment-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':12' == 'appointment-' %} active{% endif %}">Appointments</a>
       </nav>
     </aside>
     <div class="main">

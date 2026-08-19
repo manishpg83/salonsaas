@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments · SalonOS{% endblock %}
+{% block page_title %}Appointments{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Appointments</h3>
+    <a href="{% url 'appointment-create' %}" class="btn btn-primary">New appointment</a>
+  </div>
+
+  <form method="get" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px;">
+    <div class="form-field" style="margin-bottom: 0;">
+      <label for="id_view">View</label>
+      <select name="view" id="id_view">
+        <option value="day" {% if view == "day" %}selected{% endif %}>Day</option>
+        <option value="week" {% if view == "week" %}selected{% endif %}>Week</option>
+        <option value="month" {% if view == "month" %}selected{% endif %}>Month</option>
+      </select>
+    </div>
+    <div class="form-field" style="margin-bottom: 0;">
+      <label for="id_date">Date</label>
+      <input type="date" name="date" id="id_date" value="{{ anchor|date:'Y-m-d' }}">
+    </div>
+    <div class="form-field" style="margin-bottom: 0;">
+      <label for="id_staff">Staff</label>
+      <select name="staff" id="id_staff">
+        <option value="">All</option>
+        {% for member in staff_members %}
+          <option value="{{ member.pk }}" {% if selected_staff == member.pk|stringformat:"s" %}selected{% endif %}>{{ member.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-field" style="margin-bottom: 0;">
+      <label for="id_service">Service</label>
+      <select name="service" id="id_service">
+        <option value="">All</option>
+        {% for service in services %}
+          <option value="{{ service.pk }}" {% if selected_service == service.pk|stringformat:"s" %}selected{% endif %}>{{ service.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-field" style="margin-bottom: 0;">
+      <label for="id_branch">Branch</label>
+      <select name="branch" id="id_branch">
+        <option value="">All</option>
+        {% for branch in branches %}
+          <option value="{{ branch.pk }}" {% if selected_branch == branch.pk|stringformat:"s" %}selected{% endif %}>{{ branch.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-field" style="margin-bottom: 0;">
+      <label for="id_status">Status</label>
+      <select name="status" id="id_status">
+        <option value="">All</option>
+        {% for value, label in statuses %}
+          <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <a href="?view={{ view }}&date={{ prev_anchor|date:'Y-m-d' }}&staff={{ selected_staff }}&service={{ selected_service }}&branch={{ selected_branch }}&status={{ selected_status }}">&larr; Previous</a>
+    <strong>{% if range_start == range_end %}{{ range_start }}{% else %}{{ range_start }} – {{ range_end }}{% endif %}</strong>
+    <a href="?view={{ view }}&date={{ next_anchor|date:'Y-m-d' }}&staff={{ selected_staff }}&service={{ selected_service }}&branch={{ selected_branch }}&status={{ selected_status }}">Next &rarr;</a>
+  </div>
+
+  {% if appointments %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Customer</th>
+          <th>Branch</th>
+          <th>Status</th>
+          <th>Price</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appointment in appointments %}
+          <tr>
+            <td>{{ appointment.date }}</td>
+            <td>{{ appointment.time }}</td>
+            <td><a href="{% url 'appointment-detail' appointment.pk %}">{{ appointment.customer.name }}</a></td>
+            <td>{{ appointment.branch.name|default:"—" }}</td>
+            <td><span class="badge">{{ appointment.get_status_display }}</span></td>
+            <td>₹{{ appointment.price }}</td>
+            <td class="data-table-actions">
+              <a href="{% url 'appointment-edit' appointment.pk %}">Edit</a>
+              <form method="post" action="{% url 'appointment-delete' appointment.pk %}" class="inline-form" onsubmit="return confirm('Delete this appointment?');">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No appointments in this range.</p>
+  {% endif %}
+</section>
+{% endblock %}

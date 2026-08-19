@@ -20,6 +20,7 @@ urlpatterns = [
     path('', include('apps.salons.web_urls')),
     path('', include('apps.staff.urls')),
     path('', include('apps.crm.urls')),
+    path('', include('apps.scheduling.urls')),
 
     # Legacy DRF API (Phase 0-2, kept but not extended — see CLAUDE.md §3)
     path('api/v1/health/', health_check, name='health-check'),

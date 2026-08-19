@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment · {{ appointment.customer.name }} · SalonOS{% endblock %}
+{% block page_title %}Appointment — {{ appointment.customer.name }}{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>{{ appointment.customer.name }} — {{ appointment.date }} {{ appointment.time }}</h3>
+    <a href="{% url 'appointment-edit' appointment.pk %}" class="btn btn-primary">Edit</a>
+  </div>
+  <table class="data-table">
+    <tbody>
+      <tr><td>Status</td><td><span class="badge">{{ appointment.get_status_display }}</span></td></tr>
+      <tr><td>Branch</td><td>{{ appointment.branch.name|default:"—" }}</td></tr>
+      <tr><td>Duration</td><td>{{ appointment.duration_minutes }} min</td></tr>
+      <tr><td>Subtotal</td><td>₹{{ appointment.price }}</td></tr>
+      <tr><td>Discount</td><td>₹{{ appointment.discount }}</td></tr>
+      <tr><td>Advance paid</td><td>₹{{ appointment.advance }}</td></tr>
+      <tr><td>Notes</td><td>{{ appointment.notes|default:"—" }}</td></tr>
+    </tbody>
+  </table>
+
+  {% if next_statuses %}
+    <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+      {% for status in next_statuses %}
+        <form method="post" action="{% url 'appointment-status' appointment.pk %}" class="inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="{{ status }}">
+          <button type="submit" class="btn btn-primary">Mark {{ status.label }}</button>
+        </form>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Services</h3>
+    <a href="{% url 'appointment-services' appointment.pk %}">Manage services</a>
+  </div>
+  {% if lines %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Staff</th>
+          <th>Price</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in lines %}
+          <tr>
+            <td>{{ line.service.name }}</td>
+            <td>{{ line.staff.name|default:"Unassigned" }}</td>
+            <td>₹{{ line.price }}</td>
+            <td>{{ line.duration_minutes }} min</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No services added yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

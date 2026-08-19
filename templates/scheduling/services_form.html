@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Services · SalonOS{% endblock %}
+{% block page_title %}Services — {{ appointment.customer.name }}{% endblock %}
+
+{% block content %}
+<section class="card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+      <div class="alert alert-error">{{ formset.non_form_errors.0 }}</div>
+    {% endif %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Staff</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form in formset %}
+          <tr>
+            <td>
+              {{ form.id }}
+              {{ form.service }}
+              {% for err in form.service.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </td>
+            <td>{{ form.staff }}</td>
+            <td>{{ form.DELETE }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary" style="margin-top: 16px;">Save services</button>
+  </form>
+</section>
+{% endblock %}
