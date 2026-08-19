@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Customers · SalonOS{% endblock %}
+{% block page_title %}Customers{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Customers</h3>
+    <a href="{% url 'customer-create' %}" class="btn btn-primary">Add customer</a>
+  </div>
+
+  <form method="get" style="margin-bottom: 16px;">
+    <div class="form-field" style="margin-bottom: 0;">
+      <input type="text" name="q" value="{{ query }}" placeholder="Search by name or mobile">
+    </div>
+  </form>
+
+  {% if customers %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>Email</th>
+          <th>Source</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in customers %}
+          <tr>
+            <td><a href="{% url 'customer-detail' customer.pk %}">{{ customer.name }}</a></td>
+            <td>{{ customer.mobile }}</td>
+            <td>{{ customer.email|default:"—" }}</td>
+            <td>{{ customer.get_source_display|default:"—" }}</td>
+            <td class="data-table-actions">
+              <a href="{% url 'customer-edit' customer.pk %}">Edit</a>
+              <form method="post" action="{% url 'customer-delete' customer.pk %}" class="inline-form" onsubmit="return confirm('Remove {{ customer.name }}?');">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif query %}
+    <p class="muted">No customers match "{{ query }}".</p>
+  {% else %}
+    <p class="muted">No customers yet. Add your first one to get started.</p>
+  {% endif %}
+</section>
+{% endblock %}

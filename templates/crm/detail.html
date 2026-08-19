@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}{{ customer.name }} · SalonOS{% endblock %}
+{% block page_title %}{{ customer.name }}{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Profile</h3>
+    <a href="{% url 'customer-edit' customer.pk %}" class="btn btn-primary">Edit</a>
+  </div>
+  <table class="data-table">
+    <tbody>
+      <tr><td>Mobile</td><td>{{ customer.mobile }}</td></tr>
+      <tr><td>Email</td><td>{{ customer.email|default:"—" }}</td></tr>
+      <tr><td>Gender</td><td>{{ customer.get_gender_display|default:"—" }}</td></tr>
+      <tr><td>Date of birth</td><td>{{ customer.dob|default:"—" }}</td></tr>
+      <tr><td>Anniversary</td><td>{{ customer.anniversary|default:"—" }}</td></tr>
+      <tr><td>Address</td><td>{{ customer.address|default:"—" }}</td></tr>
+      <tr><td>Source</td><td>{{ customer.get_source_display|default:"—" }}</td></tr>
+      <tr><td>Notes</td><td>{{ customer.notes|default:"—" }}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Appointments</h3>
+  </div>
+  <p class="muted">No appointment history yet — this fills in once Phase 5 (Appointments) lands.</p>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Payments</h3>
+  </div>
+  <p class="muted">No payment history yet — this fills in once Phase 6 (Billing) lands.</p>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Reviews</h3>
+  </div>
+  <p class="muted">No reviews yet — reviews & feedback are a Version 2 feature.</p>
+</section>
+{% endblock %}
