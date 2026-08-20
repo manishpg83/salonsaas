@@ -36,6 +36,17 @@ def test_render_body_substitutes_placeholders():
     assert body == "Hi Priya, welcome to Glow Salon."
 
 
+def test_render_body_does_not_html_escape_special_characters():
+    """This renders a plain-text WhatsApp message, not HTML — a salon name
+    like "Glow & Co." must come through literally, not as "Glow &amp; Co."."""
+    body = render_body(
+        "Hi {{ customer_name }}, welcome to {{ salon_name }}.",
+        {"customer_name": "O'Brien", "salon_name": "Glow & Co."},
+    )
+
+    assert body == "Hi O'Brien, welcome to Glow & Co.."
+
+
 def test_send_message_logs_a_sent_message(make_web_client):
     _client, membership = make_web_client("owner@example.com")
     customer = _customer(membership.salon)

@@ -11,6 +11,8 @@ from django.views.decorators.http import require_POST
 from apps.catalog.models import Service
 from apps.core.decorators import salon_member_required
 from apps.inventory.stock import consume_for_appointment
+from apps.messaging.models import MessageTemplate
+from apps.messaging.services import appointment_context, trigger_message
 from apps.salons.models import Branch
 from apps.staff.models import Staff
 
@@ -18,6 +20,19 @@ from .forms import AppointmentForm, AppointmentServiceFormSet
 from .models import Appointment, AppointmentService
 
 CALENDAR_VIEWS = ("day", "week", "month")
+
+
+def _notify(appointment, trigger):
+    """Wires a scheduling event to a Phase 8 message (CLAUDE.md §7 Phase
+    8.2). Never raises — trigger_message already swallows provider errors —
+    so a messaging hiccup can't block a booking/status change."""
+    trigger_message(
+        salon=appointment.salon,
+        customer=appointment.customer,
+        trigger=trigger,
+        context=appointment_context(appointment),
+        appointment=appointment,
+    )
 
 
 def _recalculate_totals(appointment):
@@ -180,6 +195,7 @@ def appointment_create_view(request):
             appointment = form.save(commit=False)
             appointment.salon = request.salon
             appointment.save()
+            _notify(appointment, MessageTemplate.Trigger.BOOKING_CONFIRMATION)
             messages.success(request, "Appointment created — now add its services.")
             return redirect("appointment-services", pk=appointment.pk)
     else:
@@ -191,6 +207,10 @@ def appointment_create_view(request):
 @salon_member_required
 def appointment_edit_view(request, pk):
     appointment = get_object_or_404(Appointment, pk=pk, salon=request.salon)
+    # Captured before the form touches `appointment` — ModelForm._post_clean()
+    # (run inside is_valid()) already writes cleaned values onto the bound
+    # instance, so this has to happen before the form is even constructed.
+    original_date, original_time = appointment.date, appointment.time
 
     if request.method == "POST":
         form = AppointmentForm(request.POST, instance=appointment, salon=request.salon)
@@ -199,6 +219,8 @@ def appointment_edit_view(request, pk):
             if conflict:
                 messages.error(request, _conflict_message(conflict))
             else:
+                if (appointment.date, appointment.time) != (original_date, original_time):
+                    _notify(appointment, MessageTemplate.Trigger.CANCELLATION_NOTICE)
                 messages.success(request, "Appointment updated.")
                 return redirect("appointment-detail", pk=appointment.pk)
     else:
@@ -288,5 +310,8 @@ def appointment_status_view(request, pk):
     else:
         if new_status == Appointment.Status.COMPLETED:
             consume_for_appointment(appointment)
+            _notify(appointment, MessageTemplate.Trigger.FEEDBACK_REQUEST)
+        elif new_status == Appointment.Status.CANCELLED:
+            _notify(appointment, MessageTemplate.Trigger.CANCELLATION_NOTICE)
         messages.success(request, f"Appointment marked {appointment.get_status_display()}.")
     return redirect("appointment-detail", pk=appointment.pk)
