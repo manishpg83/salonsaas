@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Message templates · SalonOS{% endblock %}
+{% block page_title %}Message templates{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Message templates</h3>
+  </div>
+  <div class="table-responsive">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Trigger</th>
+        <th>Status</th>
+        <th>Preview</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for template in templates %}
+        <tr>
+          <td>{{ template.get_trigger_display }}</td>
+          <td>
+            {% if template.is_active %}
+              <span class="badge badge-active">Active</span>
+            {% else %}
+              <span class="badge">Inactive</span>
+            {% endif %}
+          </td>
+          <td>{{ template.body|truncatechars:60 }}</td>
+          <td class="data-table-actions">
+            <a href="{% url 'message-template-edit' template.trigger %}">Edit</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "apps.scheduling",
     "apps.billing",
     "apps.inventory",
+    "apps.messaging",
 ]
 
 # Custom user model — email login, no username (set before the first
@@ -146,6 +147,14 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# --- Messaging (Phase 8) -----------------------------------------------------
+# "console" logs/prints instead of calling a real API — see
+# apps/messaging/providers.py. Swap to a real WhatsApp Cloud API provider
+# name here once one exists; no call site needs to change.
+
+MESSAGING_PROVIDER = env("MESSAGING_PROVIDER", default="console")
 
 
 # --- Session auth (Django Templates era, Phase 3+) ---------------------------

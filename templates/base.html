@@ -24,6 +24,7 @@
           <a href="{% url 'expense-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'expense-' %} active{% endif %}">Expenses</a>
           <a href="{% url 'product-list' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'product-' or request.resolver_match.url_name|slice:':9' == 'purchase-' or request.resolver_match.url_name|slice:':9' == 'supplier-' %} active{% endif %}">Inventory</a>
         {% endif %}
+        <a href="{% url 'message-log' %}" class="nav-link{% if request.resolver_match.url_name|slice:':8' == 'message-' %} active{% endif %}">Messages</a>
       </nav>
     </aside>
     <div class="main">

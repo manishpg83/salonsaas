@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Messages · SalonOS{% endblock %}
+{% block page_title %}Messages{% endblock %}
+
+{% block content %}
+<section class="card">
+  <div class="card-header">
+    <h3>Message log</h3>
+    {% if request.membership.role == "OWNER" or request.membership.role == "MANAGER" %}
+      <a href="{% url 'message-template-list' %}" class="btn btn-primary">Manage templates</a>
+    {% endif %}
+  </div>
+  {% if log %}
+    <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Sent at</th>
+          <th>Customer</th>
+          <th>Trigger</th>
+          <th>Channel</th>
+          <th>Status</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for message in log %}
+          <tr>
+            <td>{{ message.sent_at }}</td>
+            <td>{{ message.customer.name }}</td>
+            <td>{{ message.get_trigger_display }}</td>
+            <td>{{ message.get_channel_display }}</td>
+            <td>
+              {% if message.status == "SENT" %}
+                <span class="badge badge-active">Sent</span>
+              {% else %}
+                <span class="badge badge-danger">Failed</span>
+              {% endif %}
+            </td>
+            <td>{{ message.body|truncatechars:80 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% else %}
+    <p class="muted">No messages sent yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
